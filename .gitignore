@@ -9,4 +9,5 @@ output.xml
 test_output/
 *.jpg
 *.png
+*.sh
 temp_*" > .gitignore
