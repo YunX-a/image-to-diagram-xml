@@ -1,0 +1,15 @@
+{
+    "python-envs.pythonProjects": [],
+
+    // --- 解决 Pylance 的 "私有导入" 误报问题 ---
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportPrivateImportUsage": "none"
+    },
+
+    // --- 解决拼写检查器不认识技术词汇的问题 ---
+    "cSpell.words": [
+        "genai",
+        "generativeai",
+        "lxml"
+    ]
+}

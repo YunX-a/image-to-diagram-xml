@@ -1,0 +1,12 @@
+# 创建.gitignore文件
+echo ".venv/
+__pycache__/
+*.pyc
+.env
+*.log
+.DS_Store
+output.xml
+test_output/
+*.jpg
+*.png
+temp_*" > .gitignore
