@@ -10,4 +10,6 @@ test_output/
 *.jpg
 *.png
 *.sh
+*.pdf
+
 temp_*" > .gitignore

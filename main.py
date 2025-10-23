@@ -196,6 +196,10 @@ def call_deepseek_api(prompt: str, image_path: Optional[str] = None, max_tokens:
 def call_gemini_api(prompt: str, image_path: Optional[str] = None, max_tokens: int = 2000) -> Optional[str]:
     """调用Google Gemini API"""
     try:
+        # 确保token数量足够
+        actual_max_tokens = max(max_tokens, 8000)
+        print(f"  > 使用 max_tokens: {actual_max_tokens}")
+        
         if image_path:
             # 多模态调用
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
@@ -218,14 +222,14 @@ def call_gemini_api(prompt: str, image_path: Optional[str] = None, max_tokens: i
                     }
                 ],
                 "generationConfig": {
-                    "maxOutputTokens": max_tokens,
+                    "maxOutputTokens": actual_max_tokens,
                     "temperature": 0.1,
                     "topP": 0.7
                 }
             }
         else:
-            # 纯文本调用
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={API_KEY}"
+            # 纯文本调用 - 使用相同的模型
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
             contents = {
                 "contents": [
                     {
@@ -235,7 +239,7 @@ def call_gemini_api(prompt: str, image_path: Optional[str] = None, max_tokens: i
                     }
                 ],
                 "generationConfig": {
-                    "maxOutputTokens": max_tokens,
+                    "maxOutputTokens": actual_max_tokens,
                     "temperature": 0.1,
                     "topP": 0.7
                 }
@@ -250,7 +254,18 @@ def call_gemini_api(prompt: str, image_path: Optional[str] = None, max_tokens: i
         if response.status_code == 200:
             result = response.json()
             if "candidates" in result and len(result["candidates"]) > 0:
-                return result["candidates"][0]["content"]["parts"][0]["text"]
+                candidate = result["candidates"][0]
+                if "content" in candidate:
+                    content = candidate["content"]
+                    # 检查content是否有parts字段
+                    if "parts" in content and len(content["parts"]) > 0:
+                        return content["parts"][0]["text"]
+                    # 如果没有parts，可能是新的API格式，尝试直接获取text
+                    elif "text" in content:
+                        return content["text"]
+                    else:
+                        print(f"  > Gemini API 返回格式不完整: {candidate}")
+                        return None
             return None
         else:
             print(f"  > Gemini API 调用失败: {response.status_code} - {response.text}")
@@ -388,7 +403,7 @@ def run_generation_stage(semantic_plan: str, max_refinements: int = 5):
     full_code_gen_prompt = f"{CODE_GENERATION_PROMPT_TEMPLATE}\n\n---\nThe semantic plan to implement is below:\n{semantic_plan}"
     print("  > 步骤 2.1: 生成初始 XML...")
     try:
-        current_xml = call_api(full_code_gen_prompt, max_tokens=4000)
+        current_xml = call_api(full_code_gen_prompt, max_tokens=8000)
         if not current_xml:
             print("  > 初始 XML 生成失败")
             return None
