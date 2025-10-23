@@ -11,5 +11,5 @@ test_output/
 *.png
 *.sh
 *.pdf
-
+*.xml
 temp_*" > .gitignore
